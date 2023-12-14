@@ -1,0 +1,14 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore TypeScript compilation output
+dist/
+
+# Ignore npm's debug log file
+npm-debug.log
+
+# Ignore .DS_Store files on macOS
+.DS_Store
+
+# Ignore any local configuration files you might have
+.env
