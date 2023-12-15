@@ -1,93 +1,184 @@
-//Bit length of the Key
-export const NONCE_2D_KEY_LENGTH = 192
+// Bit length of the nonce
+export const NONCE_2D_BIT_LENGTH = 256
 
-//Bit length of the Sequence
-export const NONCE_2D_SEQ_LENGTH = 64
+// Bit length of the Key
+export const NONCE_2D_KEY_BIT_LENGTH = 192 // 24 *8
 
-//Radix for hex
+// Bit length of the Sequence
+export const NONCE_2D_SEQ_BIT_LENGTH = 64 // 8*8
+
+// Bit length of the Address
+export const NONCE_2D_KEY_ADDRESS_BIT_LENGTH = 160 // 20*8
+
+// Bit length of the Chain
+export const NONCE_2D_KEY_CHAIN_BIT_LENGTH = 32 // 4*8
+
+// Radix for hex
 const HEX_RADIS = 16
 
+export enum ChainID {
+  EthereumMainnet = 1,
+  EthereumGoerli = 5,
+  Optimism = 10,
+  OptimismGoerli = 420,
+}
 /**
  * The structure of the Nonce2D, [key, seq] == [192|64] == 256 bits
  * @param key The key as a hex string
  * @param seq The sequence as a hex string
  */
-export type Nonce2D = {
-  key: string
-  seq: string
+export class Nonce2D {
+  private _key: string
+  private _seq: string
+  private _address: string
+  private _chain: string
+
+  private constructor(hexNonce2D: string) {
+    const { key, chain, address } = this.getKeyHex(BigInt(hexNonce2D))
+    this._key = key
+    this._chain = chain
+    this._address = address
+
+    this._seq = this.getSequenceHex(BigInt(hexNonce2D))
+  }
+
+  /**
+   * Takes a onchain 2d nonce hex string and converts it to a Nonce2D object
+   *
+   * @param hexNonce2D The 256 bit Nonce2D as a hex string
+   * @returns
+   */
+  static fromHexNonce(hexNonce2D: string): Nonce2D {
+    return new Nonce2D(hexNonce2D)
+  }
+
+  /**
+   * Generates a sequence number for a given hex key and sequence number
+   *
+   * @param hexKey the 192 bit hex key containing the chain and address
+   * @param seq the 64 bit sequence number or 1 if not provided
+   * @returns
+   */
+  static fromHexKey(hexKey: string, seq: number = 1): Nonce2D {
+    const hexNonce = hexKey + hexPad(seq.toString(HEX_RADIS), 16)
+    return new Nonce2D(hexNonce)
+  }
+
+  /**
+   * Function generates a 192 bit hex key for the 2d nonce on the entrypoint contract. Can be used
+   * to look up the full nonce on-chain for the wallet.
+   *
+   * @param ethAddress the destination address in the key(not the address of the 4337 wallet)
+   * @param chain the destination chain in the key
+   * @returns the 192 bit hex key for the destination address-chain pair
+   */
+  static getHexKeyForDestination(ethAddress: string, chain: ChainID): string {
+    ethAddress = stripOx(ethAddress)
+    return ('0x' + chain.toString(HEX_RADIS) + ethAddress).toLocaleLowerCase()
+  }
+
+  /**
+   * Creates a mask for the last maskLength bits and applies it to the input
+   * @returns The masked number
+   */
+  static mask256BitNumber(input: bigint, maskLength: number): bigint {
+    const mask = (BigInt(1) << BigInt(maskLength)) - BigInt(1) // Create a bitmask for the last maskLength bits
+    return input & mask // Apply the bitmask to retain the last maskLength bits
+  }
+
+  // Returns the (up to)192 bit key as a hex string
+  get key(): string {
+    return this._key
+  }
+
+  // Returns the (up to) 32 bit chain as a hex string
+  get chain(): string {
+    return this._chain
+  }
+
+  // Returns the 160 bit address as a hex string
+  get address(): string {
+    return this._address
+  }
+
+  // Returns the (up to) 64 bit sequence as a hex string
+  get seq(): string {
+    return this._seq
+  }
+
+  /**
+   * Gets the 192 bit key from a 256 bit Nonce2D
+   * @returns The 192 bit key as a hex string
+   */
+  private getKeyHex(hexNonce2D: bigint): {
+    key: string
+    chain: string
+    address: string
+  } {
+    const key = this.getKeyNumber(hexNonce2D)
+    const chain = key >> BigInt(NONCE_2D_KEY_ADDRESS_BIT_LENGTH)
+    const address = Nonce2D.mask256BitNumber(
+      key,
+      NONCE_2D_KEY_ADDRESS_BIT_LENGTH,
+    )
+    return {
+      key: this.toHex(key),
+      chain: this.toHex(chain),
+      address: this.toHex(address),
+    }
+  }
+
+  /**
+   * Gets the 192 bit key from a 256 bit Nonce2D
+   * @returns The 192 bit key
+   */
+  private getKeyNumber(hexNonce2D: bigint): bigint {
+    return hexNonce2D >> BigInt(NONCE_2D_SEQ_BIT_LENGTH)
+  }
+
+  /**
+   * Gets the 64 bit sequence from a 256 bit Nonce2D
+   * @returns The 64 bit sequence as a hex string
+   */
+  private getSequenceHex(hexNonce2D: bigint): string {
+    return this.toHex(this.getSequenceNumber(hexNonce2D))
+  }
+
+  /**
+   * Gets the 64 bit sequence from a 256 bit Nonce2D
+   * @returns The 64 bit sequence
+   */
+  private getSequenceNumber(hexNonce2D: bigint): bigint {
+    return Nonce2D.mask256BitNumber(hexNonce2D, NONCE_2D_SEQ_BIT_LENGTH)
+  }
+
+  /**
+   * Converts a bigint to a hex string with the '0x' prefix
+   * @returns The hex string with the '0x' prefix
+   */
+  private toHex(input: bigint): string {
+    return '0x' + input.toString(HEX_RADIS)
+  }
 }
 
 /**
- * Converts a 256 bit 2d nonce hex string to a Nonce2D. Separating the key and sequence
- * @param hexNonce2D the 256 bit 2d nonce hex string
- * @returns 
+ * helper function to strip the 0x prefix from a hex string
+ * @param hex the hex number to strip
+ * @returns
  */
-export function getNonce2D(hexNonce2D: string): Nonce2D {
-  const originalNumber: bigint = BigInt(hexNonce2D)
-  return { key: getKeyHex(originalNumber), seq: getSequenceHex(originalNumber) }
+function stripOx(hex: string): string {
+  if (hex.startsWith('0x')) {
+    return hex.slice(2)
+  }
+  return hex
 }
 
 /**
- * Takes the 256 bit 2d nonce, and increments its sequence by 1.
- * @param hexNonce2D the 256 bit 2d nonce hex string
+ * Helper function to padd a string with leading 0s
+ * @param hexInput string to pad
+ * @param padHex number of padding characters
+ * @returns
  */
-export function getNextNonce2D(hexNonce2D: string): Nonce2D {
-  // todo 
-  return {key : '', seq : ''}
-}
-
-/**
- * Gets the 192 bit key from a 256 bit Nonce2D
- * @param nonce2D The Nonce2D to convert
- * @returns the 192 bit key as a hex string
- */
-function getKeyHex(hexNonce2D: bigint): string {
-  return toHex(getKeyNumber(hexNonce2D))
-}
-
-/**
- * Gets the 192 bit key from a 256 bit Nonce2D
- * @param hexNonce2D  The Nonce2D to convert
- * @returns the 192 bit key
- */
-function getKeyNumber(hexNonce2D: bigint): bigint {
-  return hexNonce2D >> BigInt(NONCE_2D_SEQ_LENGTH)
-}
-
-/**
- * Gets the 64 bit sequence from a 256 bit Nonce2D
- * @param nonce2D The Nonce2D to convert
- * @returns tge 64 bit sequence as a hex string
- */
-function getSequenceHex(hexNonce2D: bigint): string {
-  return toHex(getSequenceNumber(hexNonce2D))
-}
-
-/**
- * Gets the 64 bit sequence from a 256 bit Nonce2D
- * @param nonce2D The Nonce2D to convert
- * @returns tge 64 bit sequence 
- */
-function getSequenceNumber(hexNonce2D: bigint): bigint {
-  return mask256BitNumber(hexNonce2D, NONCE_2D_SEQ_LENGTH)
-}
-
-/**
- * Converts a bigint to a hex string with the '0x' prefix
- * @param input The number to convert to hex
- * @returns the hex string with the '0x' prefix
- */
-function toHex(input: bigint): string {
-  return '0x' + input.toString(HEX_RADIS)
-}
-
-/**
- * Creates a mask for the last maskLength bits and applies it to the input
- * @param input the number to mask
- * @param maskLength the number of bits to retain
- * @returns the masked number
- */
-function mask256BitNumber(input: bigint, maskLength: number): bigint {
-  const mask = (BigInt(1) << BigInt(maskLength)) - BigInt(1) // Create a bitmask for the last maskLength bits
-  return input & mask // Apply the bitmask to retain the last maskLength bits
+function hexPad(hexInput: string, padHex: number): string {
+  return stripOx(hexInput).padStart(padHex, '0')
 }
