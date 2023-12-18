@@ -28,10 +28,14 @@ export enum ChainID {
  * @param seq The sequence as a hex string
  */
 export class Nonce2D {
+  // the key is the first 192 bits of the 256 bit Nonce2D, it includes the address and chain id
   private _key: string
+  // the sequence number is the last 64 bits of the 256 bit Nonce2D
   private _seq: string
-  private _address: string
+  // the chain is the first 32 bits of the key
   private _chain: string
+  // the address is the 160 bits of the key, following the _chain bits
+  private _address: string
 
   private constructor(hexNonce2D: string) {
     const { key, chain, address } = this.getKeyHex(BigInt(hexNonce2D))
@@ -40,6 +44,27 @@ export class Nonce2D {
     this._address = address
 
     this._seq = this.getSequenceHex(BigInt(hexNonce2D))
+  }
+
+  /**
+   * Increments the sequence number of the 2d nonce and returns it
+   * @returns The Nonce2D
+   */
+  public increment(): Nonce2D {
+    this._seq = this.toHex(BigInt(this.seq) + BigInt(1))
+    return this
+  }
+
+  /**
+   * Generate the 2d nonce hex string of the current state of the Nonce2D
+   * @returns The 256 bit Nonce2D as a hex string
+   */
+  public toHexNonce(): string {
+    //shift the key left by NONCE_2D_SEQ_BIT_LENGTH bits
+    let sum = BigInt(this._key) << BigInt(NONCE_2D_SEQ_BIT_LENGTH)
+    //add the NONCE_2D_SEQ_BIT_LENGTH sequence number bits
+    sum += BigInt(this._seq)
+    return this.toHex(sum)
   }
 
   /**

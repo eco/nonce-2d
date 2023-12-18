@@ -59,4 +59,38 @@ describe('Nonce2D tests', () => {
       expect(nonce2D.address).toBe(testsAddress)
     })
   })
+
+  describe('increment tests', () => {
+    it('should increment the sequence number', () => {
+      const n = Nonce2D.fromHexNonce(testsHexNonce)
+      const seq = Number(n.seq)
+      const key = Number(n.key)
+      const chain = Number(n.chain)
+      const address = Number(n.address)
+      n.increment()
+      expect(Number(n.seq)).toBe(seq + 1)
+      //nothing else should change
+      expect(Number(n.key)).toBe(key)
+      expect(Number(n.chain)).toBe(chain)
+      expect(Number(n.address)).toBe(address)
+    })
+  })
+
+  describe('toHexNonce tests', () => {
+    it('should return the hex nonce', () => {
+      const n = Nonce2D.fromHexNonce(testsHexNonce)
+      expect(n.toHexNonce()).toBe(testsHexNonce)
+    })
+
+    it('should be able to increment and reconstitute a new hex nonce', () => {
+      // construct new nonce by incrementing the sequence number
+      const nextNonce =
+        testsHexNonce.substring(0, testsHexNonce.length - 1) + '2'
+
+      const n = Nonce2D.fromHexNonce(testsHexNonce)
+      n.increment()
+      // check that the new nonce is correct
+      expect(n.toHexNonce()).toBe(nextNonce)
+    })
+  })
 })
