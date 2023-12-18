@@ -14,7 +14,7 @@ The key part of the nonce is derived from the destination chain and address that
 
 `key = [32 bit chain| 160 bit eth address]`
 
-To generate the key for a given destination chain and address:
+To generate the key for a given address and destination chain id:
 
 `Nonce2D.getHexKeyForDestination('0xe7f1725e7734ce288f8367e1bb143e90bb3f0512', 5)`
 
