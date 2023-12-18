@@ -32,6 +32,7 @@
     "format": "yarn lint:fix && yarn prettier:fix",
     "format:check": "yarn lint && yarn prettier",
     "build": "npx tsc",
+    "clean": "rm -rf ./dist",
     "buildLib": "build",
     "publish": "npm publish --access public"
   },
