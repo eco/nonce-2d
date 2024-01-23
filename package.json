@@ -1,6 +1,6 @@
 {
   "name": "@beamnetwork/nonce-2d",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -10,7 +10,6 @@
     "package.json",
     "README.md"
   ],
-  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eco/nonce-2d.git"
