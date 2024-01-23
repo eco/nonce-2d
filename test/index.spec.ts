@@ -1,4 +1,4 @@
-import { ChainID, Nonce2D } from '../index'
+import { ChainID, Nonce2D } from '../src/index'
 // Test chain id
 const testChain = ChainID.EthereumGoerli
 // 256 bit nonce = 32 bytes
