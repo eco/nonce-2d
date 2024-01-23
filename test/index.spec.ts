@@ -1,4 +1,12 @@
-import { ChainID, Nonce2D } from '../index'
+import { Nonce2D } from '../src/index'
+
+enum ChainID {
+  EthereumMainnet = 1,
+  EthereumGoerli = 5,
+  Optimism = 10,
+  OptimismGoerli = 420,
+}
+
 // Test chain id
 const testChain = ChainID.EthereumGoerli
 // 256 bit nonce = 32 bytes
@@ -31,7 +39,7 @@ describe('Nonce2D tests', () => {
 
   describe('fromHexKey tests', () => {
     it('should create a Nonce2D object from a valid key', () => {
-      const n = Nonce2D.fromHexKey(testsKey)
+      const n = Nonce2D.fromHexKey(testsKey, 1)
       expect(Number(n.chain)).toBe(testChain)
       expect(n.address).toBe(testsAddress)
       expect(n.seq).toBe(testsSeq)

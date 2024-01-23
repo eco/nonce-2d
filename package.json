@@ -1,9 +1,15 @@
 {
-  "name": "nonce-2d",
-  "version": "0.0.1",
+  "name": "@beamnetwork/nonce-2d",
+  "version": "0.0.5",
   "description": "",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eco/nonce-2d.git"
@@ -31,12 +37,18 @@
     "prettier:fix": "prettier . --write",
     "format": "yarn lint:fix && yarn prettier:fix",
     "format:check": "yarn lint && yarn prettier",
-    "build": "npx tsc",
-    "clean": "rm -rf ./dist",
-    "buildLib": "build",
-    "publish": "npm publish --access public"
+    "build": "tsup",
+    "clean": "rm -rf ./dist"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
   },
   "devDependencies": {
+    "@swc/core": "^1.3.105",
     "@types/jest": "^29.5.11",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
@@ -56,6 +68,7 @@
     "prettier": "^3.1.1",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {},

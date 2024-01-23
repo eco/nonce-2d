@@ -16,12 +16,6 @@ export const NONCE_2D_KEY_CHAIN_BIT_LENGTH = 32 // 4*8
 // Radix for hex
 const HEX_RADIS = 16
 
-export enum ChainID {
-  EthereumMainnet = 1,
-  EthereumGoerli = 5,
-  Optimism = 10,
-  OptimismGoerli = 420,
-}
 /**
  * The structure of the Nonce2D, [key, seq] == [192|64] == 256 bits
  * @param key The key as a hex string
@@ -81,10 +75,10 @@ export class Nonce2D {
    * Generates a sequence number for a given hex key and sequence number
    *
    * @param hexKey the 192 bit hex key containing the chain and address
-   * @param seq the 64 bit sequence number or 1 if not provided
+   * @param seq the 64 bit sequence number or defaults to 0 if not provided
    * @returns
    */
-  static fromHexKey(hexKey: string, seq: number = 1): Nonce2D {
+  static fromHexKey(hexKey: string, seq: number = 0): Nonce2D {
     const hexNonce = hexKey + hexPad(seq.toString(HEX_RADIS), 16)
     return new Nonce2D(hexNonce)
   }
@@ -94,12 +88,12 @@ export class Nonce2D {
    * to look up the full nonce on-chain for the wallet.
    *
    * @param ethAddress the destination address in the key(not the address of the 4337 wallet)
-   * @param chain the destination chain in the key
+   * @param chainID the destination chain id in the key
    * @returns the 192 bit hex key for the destination address-chain pair
    */
-  static getHexKeyForDestination(ethAddress: string, chain: ChainID): string {
+  static getHexKeyForDestination(ethAddress: string, chainID: number): string {
     ethAddress = stripOx(ethAddress)
-    return ('0x' + chain.toString(HEX_RADIS) + ethAddress).toLocaleLowerCase()
+    return ('0x' + chainID.toString(HEX_RADIS) + ethAddress).toLocaleLowerCase()
   }
 
   /**

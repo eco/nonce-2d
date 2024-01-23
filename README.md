@@ -4,7 +4,11 @@ This utility library exists to create and work with 2D nonces as discribed in th
 
 This lib has been checked against what is currently deployed by Eth-Infinitism which is [Release v0.6](https://github.com/eth-infinitism/account-abstraction/releases/tag/v0.6.0) on ethereum at [0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789](https://optimistic.etherscan.io/address/0x5ff137d4b0fdcd49dca30c7cf57e578a026d2789#code)
 
-To use the library, install it.
+To use the library, install it:
+
+```
+  yarn add @beamnetwork/nonce-2d
+```
 
 The 2D nonce is devided into 2 parts. It is 256 bits long, with 192 bits reserved for a key and 64 reserved for numerical sequence that increments for each tx.
 
