@@ -1,12 +1,14 @@
 {
   "name": "@beamnetwork/nonce-2d",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "package.json",
+    "README.md"
   ],
   "types": "index.d.ts",
   "repository": {
@@ -38,6 +40,13 @@
     "format:check": "yarn lint && yarn prettier",
     "build": "tsup",
     "clean": "rm -rf ./dist"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
