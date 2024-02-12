@@ -32,6 +32,7 @@ export class Nonce2D {
   private _address: string
 
   private constructor(hexNonce2D: string) {
+    hexNonce2D = include0x(hexNonce2D)
     const { key, chain, address } = this.getKeyHex(BigInt(hexNonce2D))
     this._key = key
     this._chain = chain
@@ -188,6 +189,18 @@ export class Nonce2D {
 function stripOx(hex: string): string {
   if (hex.startsWith('0x')) {
     return hex.slice(2)
+  }
+  return hex
+}
+
+/**
+ * helper function to include the 0x prefix in a hex string
+ * @param hex the hex string to include the 0x prefix
+ * @returns
+ */
+function include0x(hex: string): string {
+  if (!hex.startsWith('0x')) {
+    return '0x' + hex
   }
   return hex
 }

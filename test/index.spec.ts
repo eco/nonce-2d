@@ -90,6 +90,12 @@ describe('Nonce2D tests', () => {
       expect(n.toHexNonce()).toBe(testsHexNonce)
     })
 
+    it('should support lack of 0x infrom of string', () => {
+      const missing = testsHexNonce.substring(2)
+      const n = Nonce2D.fromHexNonce(missing)
+      expect(n.toHexNonce()).toBe(testsHexNonce)
+    })
+
     it('should be able to increment and reconstitute a new hex nonce', () => {
       // construct new nonce by incrementing the sequence number
       const nextNonce =
