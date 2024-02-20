@@ -1,6 +1,6 @@
 {
   "name": "@beamnetwork/nonce-2d",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -71,8 +71,5 @@
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
   },
-  "dependencies": {},
-  "engines": {
-    "node": "20.2.0"
-  }
+  "dependencies": {}
 }
