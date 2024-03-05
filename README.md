@@ -14,13 +14,13 @@ The 2D nonce is devided into 2 parts. It is 256 bits long, with 192 bits reserve
 
 `nonce-2d = [192 key | 64 seq]`
 
-The key part of the nonce is derived from the destination chain and address that the sender wants to send tokens too.
+The key portion of the nonce consists of the 192 bit eth address of the sender and a 32 bit slot that can be used to encode transaction metadata. In cases where that metadata you want to encode exceeds the 32 bits limit, you can encode an UID instead which can be used to look up the metadata in another location.
 
 `key = [32 bit chain| 160 bit eth address]`
 
-To generate the key for a given address and destination chain id:
+To generate the key for a given `(address, metadata) = ('0xe7f1725e7734ce288f8367e1bb143e90bb3f0512', '5')`:
 
-`Nonce2D.getHexKeyForDestination('0xe7f1725e7734ce288f8367e1bb143e90bb3f0512', 5)`
+`Nonce2D.getHexKeyForDestination('0xe7f1725e7734ce288f8367e1bb143e90bb3f0512', '5')`
 
 To parse a 2d nonce that is already on chain:
 

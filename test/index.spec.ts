@@ -7,12 +7,12 @@ enum ChainID {
   OptimismGoerli = 420,
 }
 
-// Test chain id
-const testChain = ChainID.EthereumGoerli
+// Test meta data
+const testMeta = '0x' + ChainID.EthereumGoerli.toString(16)
 // 256 bit nonce = 32 bytes
 const testsHexNonce =
   '0x5e7f1725e7734ce288f8367e1bb143e90bb3f05120000000000000001'
-// 192 bit key = 4 bytes for chainID = 5(00000005), 20 bytes for address(e7f1725E7734CE288F8367e1Bb143E90bb3F0512)
+// 192 bit key = 4 bytes for meta = 5(00000005), 20 bytes for address(e7f1725E7734CE288F8367e1Bb143E90bb3F0512)
 const testsKey = '0x5e7f1725e7734ce288f8367e1bb143e90bb3f0512'
 // 64 bit sequence = 8 bytes
 const testsSeq = '0x1'
@@ -32,7 +32,7 @@ describe('Nonce2D tests', () => {
       const n = Nonce2D.fromHexNonce(testsHexNonce)
       expect(n.key).toBe(testsKey)
       expect(n.seq).toBe(testsSeq)
-      expect(Number(n.chain)).toBe(testChain)
+      expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
     })
   })
@@ -40,7 +40,7 @@ describe('Nonce2D tests', () => {
   describe('fromHexKey tests', () => {
     it('should create a Nonce2D object from a valid key', () => {
       const n = Nonce2D.fromHexKey(testsKey, 1)
-      expect(Number(n.chain)).toBe(testChain)
+      expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
       expect(n.seq).toBe(testsSeq)
     })
@@ -48,7 +48,7 @@ describe('Nonce2D tests', () => {
     it('should create a Nonce2D object from a valid key with optional seq', () => {
       const seq: number = 13
       const n = Nonce2D.fromHexKey(testsKey, seq)
-      expect(Number(n.chain)).toBe(testChain)
+      expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
       expect(n.seq).toBe('0x' + seq.toString(16))
     })
@@ -56,14 +56,11 @@ describe('Nonce2D tests', () => {
 
   describe('getHexKeyForDestination tests', () => {
     it('should create a key from an address and chain', () => {
-      const hexKey = Nonce2D.getHexKeyForDestination(
-        testsAddress,
-        ChainID.EthereumGoerli,
-      )
+      const hexKey = Nonce2D.getHexKeyForDestination(testsAddress, testMeta)
       expect(hexKey).toBe(testsKey)
 
       const nonce2D = Nonce2D.fromHexKey(hexKey)
-      expect(Number(nonce2D.chain)).toBe(ChainID.EthereumGoerli)
+      expect(nonce2D.meta).toBe(testMeta)
       expect(nonce2D.address).toBe(testsAddress)
     })
   })
@@ -73,13 +70,13 @@ describe('Nonce2D tests', () => {
       const n = Nonce2D.fromHexNonce(testsHexNonce)
       const seq = Number(n.seq)
       const key = Number(n.key)
-      const chain = Number(n.chain)
+      const meta = Number(n.meta)
       const address = Number(n.address)
       n.increment()
       expect(Number(n.seq)).toBe(seq + 1)
       //nothing else should change
       expect(Number(n.key)).toBe(key)
-      expect(Number(n.chain)).toBe(chain)
+      expect(Number(n.meta)).toBe(meta)
       expect(Number(n.address)).toBe(address)
     })
   })

@@ -10,8 +10,8 @@ export const NONCE_2D_SEQ_BIT_LENGTH = 64 // 8*8
 // Bit length of the Address
 export const NONCE_2D_KEY_ADDRESS_BIT_LENGTH = 160 // 20*8
 
-// Bit length of the Chain
-export const NONCE_2D_KEY_CHAIN_BIT_LENGTH = 32 // 4*8
+// Bit length of the Meta data
+export const NONCE_2D_KEY_META_DATA_BIT_LENGTH = 32 // 4*8
 
 // Radix for hex
 const HEX_RADIS = 16
@@ -22,20 +22,20 @@ const HEX_RADIS = 16
  * @param seq The sequence as a hex string
  */
 export class Nonce2D {
-  // the key is the first 192 bits of the 256 bit Nonce2D, it includes the address and chain id
+  // the key is the first 192 bits of the 256 bit Nonce2D, it includes the address and meta data
   private _key: string
   // the sequence number is the last 64 bits of the 256 bit Nonce2D
   private _seq: string
-  // the chain is the first 32 bits of the key
-  private _chain: string
-  // the address is the 160 bits of the key, following the _chain bits
+  // the meta data is the first 32 bits of the key
+  private _meta: string
+  // the address is the 160 bits of the key, following the _meta bits
   private _address: string
 
   private constructor(hexNonce2D: string) {
     hexNonce2D = include0x(hexNonce2D)
-    const { key, chain, address } = this.getKeyHex(BigInt(hexNonce2D))
+    const { key, meta, address } = this.getKeyHex(BigInt(hexNonce2D))
     this._key = key
-    this._chain = chain
+    this._meta = meta
     this._address = address
 
     this._seq = this.getSequenceHex(BigInt(hexNonce2D))
@@ -63,7 +63,7 @@ export class Nonce2D {
   }
 
   /**
-   * Takes a onchain 2d nonce hex string and converts it to a Nonce2D object
+   * Takes a on-chain 2d nonce hex string and converts it to a Nonce2D object
    *
    * @param hexNonce2D The 256 bit Nonce2D as a hex string
    * @returns
@@ -75,7 +75,7 @@ export class Nonce2D {
   /**
    * Generates a sequence number for a given hex key and sequence number
    *
-   * @param hexKey the 192 bit hex key containing the chain and address
+   * @param hexKey the 192 bit hex key containing the meta data and address
    * @param seq the 64 bit sequence number or defaults to 0 if not provided
    * @returns
    */
@@ -89,12 +89,13 @@ export class Nonce2D {
    * to look up the full nonce on-chain for the wallet.
    *
    * @param ethAddress the destination address in the key(not the address of the 4337 wallet)
-   * @param chainID the destination chain id in the key
+   * @param meta the meta data to encode in the key
    * @returns the 192 bit hex key for the destination address-chain pair
    */
-  static getHexKeyForDestination(ethAddress: string, chainID: number): string {
+  static getHexKeyForDestination(ethAddress: string, meta: string): string {
     ethAddress = stripOx(ethAddress)
-    return ('0x' + chainID.toString(HEX_RADIS) + ethAddress).toLocaleLowerCase()
+    meta = stripOx(meta)
+    return ('0x' + meta + ethAddress).toLocaleLowerCase()
   }
 
   /**
@@ -111,9 +112,9 @@ export class Nonce2D {
     return this._key
   }
 
-  // Returns the (up to) 32 bit chain as a hex string
-  get chain(): string {
-    return this._chain
+  // Returns the (up to) 32 bit meta data as a hex string
+  get meta(): string {
+    return this._meta
   }
 
   // Returns the 160 bit address as a hex string
@@ -132,18 +133,18 @@ export class Nonce2D {
    */
   private getKeyHex(hexNonce2D: bigint): {
     key: string
-    chain: string
+    meta: string
     address: string
   } {
     const key = this.getKeyNumber(hexNonce2D)
-    const chain = key >> BigInt(NONCE_2D_KEY_ADDRESS_BIT_LENGTH)
+    const meta = key >> BigInt(NONCE_2D_KEY_ADDRESS_BIT_LENGTH)
     const address = Nonce2D.mask256BitNumber(
       key,
       NONCE_2D_KEY_ADDRESS_BIT_LENGTH,
     )
     return {
       key: this.toHex(key),
-      chain: this.toHex(chain),
+      meta: this.toHex(meta),
       address: this.toHex(address),
     }
   }
