@@ -17,7 +17,10 @@ export const NONCE_2D_KEY_META_DATA_BIT_LENGTH = 32 // 4*8
 const HEX_RADIS = 16
 
 /**
- * The structure of the Nonce2D, [key, seq] == [192|64] == 256 bits
+ * The structure of the Nonce2D, [key, seq] == [192|64] == 256 bits. The key is split up into a 32 bit meta data and a 160 bit address.
+ * This class assumes that the nonce key is intended to pass on information in the meta data for use with the encoded address.
+ * The key is therefore split from its 192 bits into a 32 bit meta data and a 160 bit address. [[meta|address], seq] == [32|160|64] == 256 bits
+ *
  * @param key The key as a hex string
  * @param seq The sequence as a hex string
  */
@@ -57,8 +60,10 @@ export class Nonce2D {
   public toHexNonce(): string {
     //shift the key left by NONCE_2D_SEQ_BIT_LENGTH bits
     let sum = BigInt(this._key) << BigInt(NONCE_2D_SEQ_BIT_LENGTH)
+
     //add the NONCE_2D_SEQ_BIT_LENGTH sequence number bits
     sum += BigInt(this._seq)
+
     return this.toHex(sum)
   }
 
@@ -73,14 +78,14 @@ export class Nonce2D {
   }
 
   /**
-   * Generates a sequence number for a given hex key and sequence number
+   * Generates a Nonce2D object for a given hex(192) key and sequence(64) number
    *
    * @param hexKey the 192 bit hex key containing the meta data and address
    * @param seq the 64 bit sequence number or defaults to 0 if not provided
    * @returns
    */
-  static fromHexKey(hexKey: string, seq: number = 0): Nonce2D {
-    const hexNonce = hexKey + hexPad(seq.toString(HEX_RADIS), 16)
+  static fromHex(hexKey: string, seq: string = '0x0'): Nonce2D {
+    const hexNonce = hexKey + hexPad(seq, 16)
     return new Nonce2D(hexNonce)
   }
 
@@ -102,9 +107,18 @@ export class Nonce2D {
    * Creates a mask for the last maskLength bits and applies it to the input
    * @returns The masked number
    */
-  static mask256BitNumber(input: bigint, maskLength: number): bigint {
-    const mask = (BigInt(1) << BigInt(maskLength)) - BigInt(1) // Create a bitmask for the last maskLength bits
+  static maskLastBits(input: bigint, maskLength: number): bigint {
+    const mask = Nonce2D.getOnMask(maskLength) // Create a bitmask for the last maskLength bits
     return input & mask // Apply the bitmask to retain the last maskLength bits
+  }
+
+  /**
+   * Creates a mask of logic 1s the lenght of maskLength bits
+   * @param maskLength the length of the mask
+   * @returns
+   */
+  static getOnMask(maskLength: number): bigint {
+    return (BigInt(1) << BigInt(maskLength)) - BigInt(1)
   }
 
   // Returns the (up to)192 bit key as a hex string
@@ -138,10 +152,7 @@ export class Nonce2D {
   } {
     const key = this.getKeyNumber(hexNonce2D)
     const meta = key >> BigInt(NONCE_2D_KEY_ADDRESS_BIT_LENGTH)
-    const address = Nonce2D.mask256BitNumber(
-      key,
-      NONCE_2D_KEY_ADDRESS_BIT_LENGTH,
-    )
+    const address = Nonce2D.maskLastBits(key, NONCE_2D_KEY_ADDRESS_BIT_LENGTH)
     return {
       key: this.toHex(key),
       meta: this.toHex(meta),
@@ -170,7 +181,7 @@ export class Nonce2D {
    * @returns The 64 bit sequence
    */
   private getSequenceNumber(hexNonce2D: bigint): bigint {
-    return Nonce2D.mask256BitNumber(hexNonce2D, NONCE_2D_SEQ_BIT_LENGTH)
+    return Nonce2D.maskLastBits(hexNonce2D, NONCE_2D_SEQ_BIT_LENGTH)
   }
 
   /**

@@ -39,18 +39,18 @@ describe('Nonce2D tests', () => {
 
   describe('fromHexKey tests', () => {
     it('should create a Nonce2D object from a valid key', () => {
-      const n = Nonce2D.fromHexKey(testsKey, 1)
+      const n = Nonce2D.fromHex(testsKey, '0x1')
       expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
       expect(n.seq).toBe(testsSeq)
     })
 
     it('should create a Nonce2D object from a valid key with optional seq', () => {
-      const seq: number = 13
-      const n = Nonce2D.fromHexKey(testsKey, seq)
+      const seq: string = '0xd'
+      const n = Nonce2D.fromHex(testsKey, seq)
       expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
-      expect(n.seq).toBe('0x' + seq.toString(16))
+      expect(n.seq).toBe(seq)
     })
   })
 
@@ -59,7 +59,7 @@ describe('Nonce2D tests', () => {
       const hexKey = Nonce2D.getHexKeyForDestination(testsAddress, testMeta)
       expect(hexKey).toBe(testsKey)
 
-      const nonce2D = Nonce2D.fromHexKey(hexKey)
+      const nonce2D = Nonce2D.fromHex(hexKey)
       expect(nonce2D.meta).toBe(testMeta)
       expect(nonce2D.address).toBe(testsAddress)
     })
