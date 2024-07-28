@@ -15,7 +15,7 @@ const testsHexNonce =
 // 192 bit key = 4 bytes for meta = 5(00000005), 20 bytes for address(e7f1725E7734CE288F8367e1Bb143E90bb3F0512)
 const testsKey = '0x5e7f1725e7734ce288f8367e1bb143e90bb3f0512'
 // 64 bit sequence = 8 bytes
-const testsSeq = '0x1'
+const testsSeq = '0x0000000000000001'
 // 160 bit address
 const testsAddress = '0xe7f1725e7734ce288f8367e1bb143e90bb3f0512'
 
@@ -46,7 +46,7 @@ describe('Nonce2D tests', () => {
     })
 
     it('should create a Nonce2D object from a valid key with optional seq', () => {
-      const seq: string = '0xd'
+      const seq: string = '0x000000000000000d'
       const n = Nonce2D.fromHex(testsKey, seq)
       expect(n.meta).toBe(testMeta)
       expect(n.address).toBe(testsAddress)
@@ -85,6 +85,17 @@ describe('Nonce2D tests', () => {
     it('should return the hex nonce', () => {
       const n = Nonce2D.fromHexNonce(testsHexNonce)
       expect(n.toHexNonce()).toBe(testsHexNonce)
+    })
+
+    it('should not cut off leading 0 in address', () => {
+      // const nonceHash = '50C77C13C2A7736140B2B9FA9F4E16B4BECCD665A0000000000000007'
+      const destinationAddress =
+        '0x0C77C13c2a7736140b2b9Fa9F4e16B4bECCd665A'.toLocaleLowerCase()
+      const stable = '5'
+      const key = Nonce2D.getHexKeyForDestination(destinationAddress, stable)
+      const nonceHash = ((BigInt(key) << BigInt(64)) + BigInt(7)).toString(16)
+      const n = Nonce2D.fromHexNonce(nonceHash)
+      expect(n.address).toBe(destinationAddress)
     })
 
     it('should support lack of 0x infrom of string', () => {

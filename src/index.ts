@@ -1,3 +1,6 @@
+// Size of a hex character in bits
+export const NONCE_2D_BIT_TO_HEX = 4
+
 // Bit length of the nonce
 export const NONCE_2D_BIT_LENGTH = 256
 
@@ -16,6 +19,15 @@ export const NONCE_2D_KEY_META_DATA_BIT_LENGTH = 32 // 4*8
 // Radix for hex
 const HEX_RADIS = 16
 
+/**
+ * Reverses the string, returns a reference
+ *
+ * @param str string to reverse
+ * @returns
+ */
+function reverseString(str: string): string {
+  return str.split('').reverse().join('')
+}
 /**
  * The structure of the Nonce2D, [key, seq] == [192|64] == 256 bits. The key is split up into a 32 bit meta data and a 160 bit address.
  * This class assumes that the nonce key is intended to pass on information in the meta data for use with the encoded address.
@@ -36,12 +48,11 @@ export class Nonce2D {
 
   private constructor(hexNonce2D: string) {
     hexNonce2D = include0x(hexNonce2D)
-    const { key, meta, address } = this.getKeyHex(BigInt(hexNonce2D))
-    this._key = key
-    this._meta = meta
-    this._address = address
-
-    this._seq = this.getSequenceHex(BigInt(hexNonce2D))
+    const decoded = this.decodeHex(hexNonce2D)
+    this._key = decoded.key
+    this._seq = decoded.seq
+    this._address = decoded.address
+    this._meta = decoded.meta
   }
 
   /**
@@ -63,7 +74,6 @@ export class Nonce2D {
 
     //add the NONCE_2D_SEQ_BIT_LENGTH sequence number bits
     sum += BigInt(this._seq)
-
     return this.toHex(sum)
   }
 
@@ -121,6 +131,15 @@ export class Nonce2D {
     return (BigInt(1) << BigInt(maskLength)) - BigInt(1)
   }
 
+  /**
+   * Converts a bit length to a character length
+   * @param bitLength the length in bits
+   * @returns the length in characters
+   */
+  static toCharNum(bitLength: number): number {
+    return bitLength / NONCE_2D_BIT_TO_HEX
+  }
+
   // Returns the (up to)192 bit key as a hex string
   get key(): string {
     return this._key
@@ -139,6 +158,41 @@ export class Nonce2D {
   // Returns the (up to) 64 bit sequence as a hex string
   get seq(): string {
     return this._seq
+  }
+
+  /**
+   * Decodes the 256 bit Nonce2D into its 192 bit key and 64 bit sequence
+   * @returns the 2d nonce decoded into its key and sequence
+   */
+  decodeHex(hexNonce2D: string): {
+    key: string
+    seq: string
+    address: string
+    meta: string
+  } {
+    //check that its a valid hex string
+    BigInt(hexNonce2D)
+    const rev = reverseString(stripOx(hexNonce2D))
+    const seq = reverseString(
+      rev.slice(0, Nonce2D.toCharNum(NONCE_2D_SEQ_BIT_LENGTH)),
+    )
+    const key = rev.slice(
+      Nonce2D.toCharNum(NONCE_2D_SEQ_BIT_LENGTH),
+      rev.length,
+    )
+    const address = reverseString(
+      key.slice(0, Nonce2D.toCharNum(NONCE_2D_KEY_ADDRESS_BIT_LENGTH)),
+    )
+    const meta = reverseString(
+      key.slice(Nonce2D.toCharNum(NONCE_2D_KEY_ADDRESS_BIT_LENGTH), key.length),
+    )
+
+    return {
+      key: '0x' + reverseString(key),
+      seq: '0x' + seq,
+      address: '0x' + address,
+      meta: '0x' + meta,
+    }
   }
 
   /**
